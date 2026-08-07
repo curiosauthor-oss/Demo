@@ -1,4 +1,4 @@
-# Customer Billing Refund and Service Credit Policy
+# Customer Order Refund Eligibility Policy
 
 Policy reference: CBRP-2026-01
 Effective date: 1 August 2026
@@ -6,63 +6,63 @@ Owner: Customer Billing Operations
 
 ## Purpose
 
-This policy defines when a customer billing refund can proceed automatically and when a Customer Service Representative must review the request.
+This policy determines whether a customer-reported order charge is eligible to proceed to automated refund-request processing or requires Customer Service Representative review. An eligibility decision does not indicate that money has been returned.
 
 ## Required information
 
-A refund request must include:
+The evaluation requires:
 
-- a valid invoice number;
-- the requested refund amount;
-- the reason for the refund; and
-- enough information to match the request to the customer account and invoice.
+- a sales order number explicitly supplied by the customer;
+- a transaction date retrieved from Order Management for that order;
+- the requested refund amount; and
+- the customer's stated refund reason.
 
-If any required information is missing, request that information from the customer before continuing.
+If the order number, transaction date, amount, or reason is missing, return `REQUEST_INFORMATION`.
 
-## Eligible refund reasons
+## Eligible reasons
 
-A refund may be considered for one of the following reasons:
+The following reasons are eligible for the automated refund-request path:
 
 - duplicate charge;
 - incorrect amount charged;
-- charge raised after a confirmed cancellation; or
-- payment collected for a service that was not delivered.
+- charge raised after cancellation; or
+- charge for a service the customer reports was not delivered.
 
-Requests for goodwill compensation, consequential loss, or an unrelated commercial dispute are not eligible for automatic refund processing and require CSR review.
+Goodwill compensation, consequential loss, and unrelated commercial disputes require CSR review.
 
-## Invoice and account validation
+## Time limit
 
-Before applying the monetary threshold, confirm from the billing system that:
+The request must be evaluated within 30 calendar days of the Order Management transaction date. Day 30 is inside the permitted window. A request evaluated after day 30 requires CSR review.
 
-- the invoice exists and belongs to the customer account;
-- the invoice has been paid;
-- the customer account is active;
-- the requested amount does not exceed the refundable invoice balance; and
-- the request was made within 30 calendar days of the invoice date.
+## Monetary threshold
 
-If the invoice cannot be validated, request corrected invoice information. If the invoice is unpaid, the account is inactive, the amount exceeds the refundable balance, or the request is outside 30 days, route the request for CSR review.
+An otherwise eligible request of 100 USD or less may proceed to automated refund-request processing without CSR approval. Exactly 100 USD is within the limit.
+
+An otherwise eligible request above 100 USD requires CSR review and approval before it can proceed.
 
 ## Decision rules
 
 Apply these rules in order:
 
-1. If required information is missing, return `REQUEST_INFORMATION`.
-2. If the invoice number cannot be matched, return `REQUEST_INFORMATION`.
-3. If the request fails an account, invoice, balance, time-limit, or eligible-reason check, return `CSR_REVIEW_REQUIRED`.
-4. If all eligibility checks pass and the requested amount is 100 USD or less, return `ELIGIBLE_FOR_AUTOMATED_REFUND`.
-5. If all eligibility checks pass and the requested amount is greater than 100 USD, return `CSR_REVIEW_REQUIRED`.
+1. If any required customer-supplied information is missing, return `REQUEST_INFORMATION` with reason code `REQUIRED_INFORMATION_MISSING`.
+2. If the order cannot be found or no transaction date is returned, return `REQUEST_INFORMATION` with reason code `ORDER_NOT_FOUND`.
+3. If the reason is not eligible, return `CSR_REVIEW_REQUIRED` with reason code `INELIGIBLE_REASON`.
+4. If the request is outside the 30-day window, return `CSR_REVIEW_REQUIRED` with reason code `OUTSIDE_30_DAY_WINDOW`.
+5. If all eligibility checks pass and the requested amount is 100 USD or less, return `ELIGIBLE_FOR_AUTOMATED_REFUND` with reason code `ELIGIBLE_WITHIN_THRESHOLD`.
+6. If all eligibility checks pass and the requested amount is greater than 100 USD, return `CSR_REVIEW_REQUIRED`, require approval, and use reason code `ABOVE_AUTOMATIC_THRESHOLD`.
 
-Exactly 100 USD is within the automated-refund limit. Any amount above 100 USD requires CSR review.
+Decision identifiers and reason codes must be returned exactly as written. They must not be paraphrased or renamed.
 
 ## Expected outcome
 
 For each evaluation, provide:
 
-- the decision;
+- the exact decision identifier;
+- the exact reason code;
 - a concise explanation;
-- the invoice and amount evaluated;
+- the order number, transaction date, amount, and reason evaluated;
 - the policy reference `CBRP-2026-01`;
-- whether CSR review is required; and
+- whether CSR review or approval is required; and
 - the next permitted action.
 
-An eligibility decision confirms only that the request may proceed to the appropriate refund-processing action. It is not evidence that funds have been returned to the customer.
+`ELIGIBLE_FOR_AUTOMATED_REFUND` permits the workflow to create or prepare a refund-processing request. It is not evidence that a refund has been paid, settled, or credited.
